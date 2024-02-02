@@ -2,4 +2,7 @@
 *.a
 *.sh
 README
-
+infile
+outfile
+here_doc
+pipex
