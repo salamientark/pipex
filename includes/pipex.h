@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 10:07:15 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/01 10:47:25 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/02 09:08:27 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,5 +32,6 @@ char    **parse_command(char *cmd);
 
 // ERROR
 void    print_error(char *msg, int error);
+void    exit_error_msg(char *msg, int error);
 
 #endif
