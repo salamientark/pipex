@@ -6,29 +6,29 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 14:14:45 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/03 17:02:08 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/03 19:40:01 by madlab           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/pipex.h"
 
-static void free_cmd(char ***cmd_ptr)
+static void	free_cmd(char ***cmd_ptr)
 {
-    int index;
+	int	index;
 
-    index = 1;
-    while ((*cmd_ptr)[index] != NULL)
-    {
-        free((*cmd_ptr)[index]);
-        (*cmd_ptr)[index] = NULL;
-        index++;
-    }
-    free(*cmd_ptr);
-    *cmd_ptr = NULL;
+	index = 1;
+	while ((*cmd_ptr)[index] != NULL)
+	{
+		free((*cmd_ptr)[index]);
+		(*cmd_ptr)[index] = NULL;
+		index++;
+	}
+	free(*cmd_ptr);
+	*cmd_ptr = NULL;
 }
 
 /*
-    add correct dir prefix from path to cmd
+	add correct dir prefix from path to cmd
 */
 static char	*add_executable_dir(char *cmd, char *path)
 {
@@ -46,17 +46,18 @@ static char	*add_executable_dir(char *cmd, char *path)
 	{
 		final_cmd = ft_strjoin(splited_path[index], cmd);
 		if (access(final_cmd, F_OK | X_OK) == 0)
-			return (free_str_tab(&splited_path), final_cmd);
+			return (free_str_tab(&splited_path), free(cmd), final_cmd);
 		free(final_cmd);
 		index++;
 	}
 	free_str_tab(&splited_path);
 	print_error(cmd, " : Command not found");
+	free(cmd);
 	return (NULL);
 }
 
 /*
-    Add correct binary from env to cmd
+	Add correct binary from env to cmd
 */
 char	**parse_command(char *cmd, char **env)
 {
@@ -74,7 +75,7 @@ char	**parse_command(char *cmd, char **env)
 		path_pos++;
 	if (!env[path_pos])
 	{
-        free_str_tab(&parse_cmd);
+		free_str_tab(&parse_cmd);
 		print_error_cmd("parse_command: ", cmd, "Command not found");
 		return (NULL);
 	}
