@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/06 14:52:32 by dbaladro          #+#    #+#             */
-/*   Updated: 2023/12/23 23:21:47 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/03 12:20:58 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,11 @@ size_t				ft_strlen(const char *s);
 char				*ft_strchr(const char *s, int c);
 char				*ft_strrchr(const char *s, int c);
 int					ft_strncmp(const char *s1, const char *s2, size_t n);
+char				*ft_strcpy(char *dest, char *src);
+char				*ft_strncpy(char *dest, char *src, unsigned int n);
 size_t				ft_strlcpy(char *dst, const char *src, size_t siz);
+char				*ft_strcat(char *dest, char *src);
+char				*ft_strncat(char *dest, char *src, unsigned int nb);
 size_t				ft_strlcat(char *dst, const char *src, size_t siz);
 char				*ft_strnstr(const char *s1, const char *s2, size_t len);
 char				*ft_strdup(const char *s);

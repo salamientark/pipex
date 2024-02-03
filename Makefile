@@ -10,6 +10,7 @@ SRC_DIR = src
 SRC_FILE = command.c \
 			here_doc.c \
 			error.c \
+			split_path.c \
 			pipex.c
 			   
 ### HEADER FILE ###

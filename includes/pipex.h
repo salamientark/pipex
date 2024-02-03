@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 10:07:15 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/02 09:08:27 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/03 16:46:03 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,15 +23,26 @@
 # include <fcntl.h>
 # include "../libft/includes/libft.h"
 
+// Bash error code
+// # define ENXIO "No such file or directory"
+
 // HERE_DOC
 int     create_here_doc(char *limiter);
-int     pipe_here_doc(int size, char **av);
+int     pipe_here_doc(int size, char **av, char **env);
 
 // COMMAND
-char    **parse_command(char *cmd);
+char    **parse_command(char *cmd, char **env);
 
 // ERROR
-void    print_error(char *msg, int error);
-void    exit_error_msg(char *msg, int error);
+void    print_error(char *msg, char *error);
+void    print_error_cmd(char *msg, char *arg, char *error);
+void    exit_error_msg(char *msg, char *msg_2);
+void    exit_error_cmd(char *msg, char *arg, char *error);
+
+// PATH
+char	**split_path(const char *path);
+char	**get_path(void);
+
+void    free_str_tab(char ***str_tab_ptr);
 
 #endif
