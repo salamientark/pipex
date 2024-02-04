@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 14:14:45 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/03 19:40:01 by madlab           ###   ########.fr       */
+/*   Updated: 2024/02/04 09:31:25 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,39 @@ static void	free_cmd(char ***cmd_ptr)
 	free(*cmd_ptr);
 	*cmd_ptr = NULL;
 }
+
+/*
+	add correct dir prefix from path to cmd
+*/
+// static char	**add_executable_dir(char **splited_cmd, char *path)
+// {
+// 	char	**splited_path;
+// 	char	*final_cmd;
+// 	int		index;
+
+// 	if (access(splited_cmd[0], F_OK | X_OK) == 0)
+// 		return (splited_cmd);
+// 	splited_path = split_path(path);
+// 	if (!splited_path)
+// 		return (NULL);
+// 	index = 0;
+// 	while (splited_path[index])
+// 	{
+// 		final_cmd = ft_strjoin(splited_path[index], splited_cmd[0]);
+// 		if (access(final_cmd, F_OK | X_OK) == 0)
+// 		{
+// 			free(splited_cmd[0]);
+// 			splited_cmd[0] = final_cmd;
+// 			return (free_str_tab(&splited_path), splited_cmd);
+// 		}
+// 		free(final_cmd);
+// 		index++;
+// 	}
+// 	free_str_tab(&splited_path);
+// 	print_error(splited_cmd[0], " : Command not found");
+// 	return (free(splited_cmd[0]), splited_cmd);
+// }
+
 
 /*
 	add correct dir prefix from path to cmd
