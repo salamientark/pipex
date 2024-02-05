@@ -6,14 +6,15 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/02 12:26:46 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/03 16:30:51 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/05 17:05:38 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 /*
-	Point of get path is making a "correctly" splitted PATH array.
+	Point of get path is making a "correctly" splitted PATH array from environment
 	Basically a reworked ft_split addind '/' at every path's end.
 	EXEMPLE :
+		ENV :
 		{								 \		{
 		...,						|-----\		"/usr/bin/",
 		"PATH=/usr/bin:/bin:...",   |-----/		"/bin/",
@@ -25,29 +26,36 @@
 
 extern char	**environ;
 
-static void	free_all(char ***str_tab_ptr, unsigned int size)
+/*
+	Free the split_path if malloc failed during filling
+	Set every pointer to NULL
+*/
+static void	free_all(char ***split_path_ptr, unsigned int size)
 {
-	while (size > 0 || (*str_tab_ptr)[size] != NULL)
+	while (size > 0 || (*split_path_ptr)[size] != NULL)
 	{
-		free(*(str_tab_ptr[size]));
-		*(str_tab_ptr[size--]) = 0;
+		free(*(split_path_ptr[size]));
+		*(split_path_ptr[size--]) = 0;
 	}
-	free(*str_tab_ptr);
-	*str_tab_ptr = 0;
+	free(*split_path_ptr);
+	*split_path_ptr = 0;
 }
 
-static unsigned int	count_path(const char *str)
+/*
+	count PATH entrys from environment PATH variable
+*/
+static unsigned int	count_path(const char *path)
 {
 	int			word_count;
 	int			new_word;
-	const char	*str_p;
+	const char	*path_p;
 
-	str_p = str;
+	path_p = path;
 	word_count = 0;
 	new_word = 1;
-	while (*str_p)
+	while (*path_p)
 	{
-		if (*str_p != ':')
+		if (*path_p != ':')
 		{
 			if (new_word == 1)
 				word_count++;
@@ -55,21 +63,24 @@ static unsigned int	count_path(const char *str)
 		}
 		else
 			new_word = 1;
-		str_p++;
+		path_p++;
 	}
 	return (word_count);
 }
 
-static char	*extract_path(const char **str)
+/*
+	Malloc and extract one path from the PATH variable (extracted from env)
+*/
+static char	*extract_path(char **path)
 {
 	int		i;
 	int		size;
 	char	*word;
 
-	while (**str == ':')
-		(*str)++;
+	while (**path == ':')
+		(*path)++;
 	i = 0;
-	while ((*str)[i] && (*str)[i] != ':')
+	while ((*path)[i] && (*path)[i] != ':')
 		i++;
 	if (i == 0)
 		return (NULL);
@@ -80,39 +91,59 @@ static char	*extract_path(const char **str)
 	i = 0;
 	while (i < size)
 	{
-		word[i] = (*str)[i];
+		word[i] = (*path)[i];
 		i++;
 	}
 	word[i++] = '/';
 	word[i] = '\0';
-	*str += size;
+	*path += size;
 	return (word);
 }
 
-char	**split_path(const char *path)
+/*
+	Get the PATH vaiable from env
+	Return NULL if not found
+*/
+static char	*find_path_in_env(char **env)
 {
-	char			**strs_tab;
-	unsigned int	word_nb;
+	int	index;
+
+	index = 0;
+	while (env[index] && ft_strncmp(env[index], "PATH=", 5) != 0)
+		index++;
+	if (!env[index])
+		return (print_error("pipex: ", "No PATH"), (char *)NULL);
+	return (env[index] + 5);
+}
+
+/*
+	split the PATH variable from env
+*/
+char **get_path(char **env)
+{
+	char			**splited_path;
+	char			*env_path;
+	unsigned int	path_nbr;
 	unsigned int	index;
 
-	if (!path)
-		exit_error_msg("make_path: ", "No PATH found... Nowhere");
-	word_nb = count_path(path);
-	strs_tab = (char **)malloc(sizeof(char *) * (word_nb + 1));
-	if (!strs_tab)
-		exit_error_msg("make_path: ", strerror(errno));
+	if (!env)
+		return (print_error("get_path: ", "No ENV"), (char **)NULL);
+	env_path = find_path_in_env(env);
+	if (!env_path)
+		return ((char **)NULL);
+	path_nbr = count_path(env_path);
+	splited_path = (char **)malloc(sizeof(char *) * (path_nbr + 1));
+	if (!splited_path)
+		return (print_error("get_path: ", strerror(errno)), (char **)NULL);
 	index = 0;
-	while (index < word_nb)
+	while (index < path_nbr)
 	{
-		strs_tab[index] = extract_path(&path);
-		if (!strs_tab[index])
-		{
-			free_all(&strs_tab, index);
-			print_error("make_path: ", strerror(errno));
-			return (NULL);
-		}
+		splited_path[index] = extract_path(&env_path);
+		if (!splited_path[index])
+			return (free_all(&splited_path, index), print_error("make_path: ",
+				strerror(errno)), (char **)NULL);
 		index++;
 	}
-	strs_tab[index] = NULL;
-	return (strs_tab);
+	splited_path[index] = NULL;
+	return (splited_path);
 }

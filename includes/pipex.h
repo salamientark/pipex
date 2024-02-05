@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 10:07:15 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/03 16:46:03 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/05 17:02:27 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,8 +40,7 @@ void    exit_error_msg(char *msg, char *msg_2);
 void    exit_error_cmd(char *msg, char *arg, char *error);
 
 // PATH
-char	**split_path(const char *path);
-char	**get_path(void);
+char	**get_path(char **env);
 
 void    free_str_tab(char ***str_tab_ptr);
 

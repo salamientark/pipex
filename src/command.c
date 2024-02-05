@@ -6,117 +6,178 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 14:14:45 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/04 09:31:25 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/05 17:02:56 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+/*
+	This file split the command into correct execve format
+		(adding executable dir to command)
+	Basically a reworked split with *add_executable_dir* func for first arg
+*/
+
 #include "../includes/pipex.h"
 
-static void	free_cmd(char ***cmd_ptr)
+/*
+	free already malloc block on error
+*/
+static void	free_all(char ***split_cmd_ptr, unsigned int size)
 {
-	int	index;
-
-	index = 1;
-	while ((*cmd_ptr)[index] != NULL)
+	while (size > 0)
 	{
-		free((*cmd_ptr)[index]);
-		(*cmd_ptr)[index] = NULL;
-		index++;
+		free(*(split_cmd_ptr[size]));
+		*(split_cmd_ptr[size--]) = 0;
 	}
-	free(*cmd_ptr);
-	*cmd_ptr = NULL;
+	free(*split_cmd_ptr);
+	*split_cmd_ptr = 0;
 }
 
 /*
-	add correct dir prefix from path to cmd
+	Count Word
 */
-// static char	**add_executable_dir(char **splited_cmd, char *path)
-// {
-// 	char	**splited_path;
-// 	char	*final_cmd;
-// 	int		index;
+static unsigned int	count_word(const char *str)
+{
+	int			word_count;
+	int			new_word;
+	const char	*str_p;
 
-// 	if (access(splited_cmd[0], F_OK | X_OK) == 0)
-// 		return (splited_cmd);
-// 	splited_path = split_path(path);
-// 	if (!splited_path)
-// 		return (NULL);
-// 	index = 0;
-// 	while (splited_path[index])
-// 	{
-// 		final_cmd = ft_strjoin(splited_path[index], splited_cmd[0]);
-// 		if (access(final_cmd, F_OK | X_OK) == 0)
-// 		{
-// 			free(splited_cmd[0]);
-// 			splited_cmd[0] = final_cmd;
-// 			return (free_str_tab(&splited_path), splited_cmd);
-// 		}
-// 		free(final_cmd);
-// 		index++;
-// 	}
-// 	free_str_tab(&splited_path);
-// 	print_error(splited_cmd[0], " : Command not found");
-// 	return (free(splited_cmd[0]), splited_cmd);
-// }
-
+	str_p = str;
+	word_count = 0;
+	new_word = 1;
+	while (*str_p)
+	{
+		if (*str_p != ' ')
+		{
+			if (new_word == 1)
+				word_count++;
+			new_word = 0;
+		}
+		else
+			new_word = 1;
+		str_p++;
+	}
+	return (word_count);
+}
 
 /*
-	add correct dir prefix from path to cmd
+	Add correct executable dir from env to cmd
+	Then free(cmd) if necessary
 */
-static char	*add_executable_dir(char *cmd, char *path)
+static char	*add_executable_dir(char **cmd_ptr, char **env)
 {
-	char	**splited_path;
+	char	**path;
 	char	*final_cmd;
 	int		index;
 
-	if (access(cmd, F_OK | X_OK) == 0)
-		return (cmd);
-	splited_path = split_path(path);
-	if (!splited_path)
-		return (NULL);
+	if (access(*cmd_ptr, F_OK | X_OK) != -1)
+		return (*cmd_ptr);
+	path = get_path(env);
+	if (!path)
+		return (free(*cmd_ptr), (char *)NULL);
 	index = 0;
-	while (splited_path[index])
+	while (path[index])
 	{
-		final_cmd = ft_strjoin(splited_path[index], cmd);
-		if (access(final_cmd, F_OK | X_OK) == 0)
-			return (free_str_tab(&splited_path), free(cmd), final_cmd);
+		final_cmd = ft_strjoin(path[index], *cmd_ptr);
+		if (!final_cmd)
+			return (print_error("add_executable_dir: ", strerror(errno)),
+				free_str_tab(&path), free(*cmd_ptr), (char *)NULL);
+		if (access(final_cmd, F_OK | X_OK) != -1)
+			return (free_str_tab(&path), free(*cmd_ptr), final_cmd);
 		free(final_cmd);
 		index++;
 	}
-	free_str_tab(&splited_path);
-	print_error(cmd, " : Command not found");
-	free(cmd);
-	return (NULL);
+	print_error_cmd("pipex: ", *cmd_ptr, "Command not found");
+	free_str_tab(&path);
+	free(*cmd_ptr);
+	return ((char *)NULL);
 }
 
 /*
-	Add correct binary from env to cmd
+	Malloc and copy word
+	Add correct dir prefix from path to cmd if first_arg
 */
+static char	*extract_word(char **cmd_ptr, int pos, char **env)
+{
+	int		i;
+	int		size;
+	char	*word;
+
+	while (**cmd_ptr == ' ')
+		(*cmd_ptr)++;
+	i = 0;
+	while ((*cmd_ptr)[i] && (*cmd_ptr)[i] != ' ')
+		i++;
+	if (i == 0)
+		return (NULL);
+	word = (char *)malloc(i + 1);
+	if (!word)
+		return (NULL);
+	size = i;
+	i = 0;
+	while (i < size)
+	{
+		word[i] = (*cmd_ptr)[i];
+		i++;
+	}
+	word[i] = '\0';
+	*cmd_ptr += size;
+	if (pos == 0)
+		return (add_executable_dir(&word, env));
+	return (word);
+}
+
 char	**parse_command(char *cmd, char **env)
 {
-	char	**parse_cmd;
-	int		path_pos;
+	char			**splited_cmd;
+	unsigned int	word_nb;
+	unsigned int	index;
 
-	parse_cmd = ft_split(cmd, ' ');
-	if (!parse_cmd)
-	{
-		print_error("parse_command: ", "ft_split error");
+	if (!cmd)
 		return (NULL);
-	}
-	path_pos = 0;
-	while (env[path_pos] && ft_strncmp(env[path_pos], "PATH=", 5) != 0)
-		path_pos++;
-	if (!env[path_pos])
-	{
-		free_str_tab(&parse_cmd);
-		print_error_cmd("parse_command: ", cmd, "Command not found");
+	word_nb = count_word(cmd);
+	splited_cmd = (char **)malloc(sizeof(char *) * (word_nb + 1));
+	if (!splited_cmd)
 		return (NULL);
-	}
-	parse_cmd[0] = add_executable_dir(parse_cmd[0], env[path_pos]);
-	if (!parse_cmd[0])
+	index = 0;
+	while (index < word_nb)
 	{
-		free_cmd(&parse_cmd);
-		return (NULL);
+		splited_cmd[index] = extract_word(&cmd, index, env);
+		if (!splited_cmd[index])
+			return (free_all(&splited_cmd, index), (char **)NULL);
+		index++;
 	}
-	return (parse_cmd);
+	splited_cmd[index] = (char *)NULL;
+	return (splited_cmd);
 }
+
+// /*
+// 	Add correct binary from env to cmd
+// */
+// char	**parse_command(char *cmd, char **env)
+// {
+// 	char	**parse_cmd;
+// 	int		path_pos;
+
+// 	parse_cmd = ft_split(cmd, ' ');
+// 	if (!parse_cmd)
+// 	{
+// 		print_error("parse_command: ", "ft_split error");
+// 		return (NULL);
+// 	}
+// 	path_pos = 0;
+// 	while (env[path_pos] && ft_strncmp(env[path_pos], "PATH=", 5) != 0)
+// 		path_pos++;
+// 	if (!env[path_pos])
+// 	{
+// 		free_str_tab(&parse_cmd);
+// 		print_error_cmd("parse_command: ", cmd, "Command not found");
+// 		return (NULL);
+// 	}
+// 	add_executable_dir(&parse_cmd, env[path_pos]);
+// 	if (!parse_cmd)
+// 	{
+// 		// free_cmd(&parse_cmd);
+// 		return (NULL);
+// 	}
+// 	return (parse_cmd);
+// }
