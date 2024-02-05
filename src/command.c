@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 14:14:45 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/05 17:02:56 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/05 22:50:56 by madlab           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,14 +73,14 @@ static char	*add_executable_dir(char **cmd_ptr, char **env)
 		return (*cmd_ptr);
 	path = get_path(env);
 	if (!path)
-		return (free(*cmd_ptr), (char *)NULL);
+		return (free(*cmd_ptr), (char *) NULL);
 	index = 0;
 	while (path[index])
 	{
 		final_cmd = ft_strjoin(path[index], *cmd_ptr);
 		if (!final_cmd)
 			return (print_error("add_executable_dir: ", strerror(errno)),
-				free_str_tab(&path), free(*cmd_ptr), (char *)NULL);
+				free_str_tab(&path), free(*cmd_ptr), (char *) NULL);
 		if (access(final_cmd, F_OK | X_OK) != -1)
 			return (free_str_tab(&path), free(*cmd_ptr), final_cmd);
 		free(final_cmd);
@@ -89,7 +89,7 @@ static char	*add_executable_dir(char **cmd_ptr, char **env)
 	print_error_cmd("pipex: ", *cmd_ptr, "Command not found");
 	free_str_tab(&path);
 	free(*cmd_ptr);
-	return ((char *)NULL);
+	return ((char *) NULL);
 }
 
 /*
@@ -104,15 +104,14 @@ static char	*extract_word(char **cmd_ptr, int pos, char **env)
 
 	while (**cmd_ptr == ' ')
 		(*cmd_ptr)++;
-	i = 0;
-	while ((*cmd_ptr)[i] && (*cmd_ptr)[i] != ' ')
-		i++;
-	if (i == 0)
+	size = 0;
+	while ((*cmd_ptr)[size] && (*cmd_ptr)[size] != ' ')
+		size++;
+	if (size == 0)
 		return (NULL);
-	word = (char *)malloc(i + 1);
+	word = (char *)malloc(size + 1);
 	if (!word)
 		return (NULL);
-	size = i;
 	i = 0;
 	while (i < size)
 	{
@@ -143,10 +142,10 @@ char	**parse_command(char *cmd, char **env)
 	{
 		splited_cmd[index] = extract_word(&cmd, index, env);
 		if (!splited_cmd[index])
-			return (free_all(&splited_cmd, index), (char **)NULL);
+			return (free_all(&splited_cmd, index), (char **) NULL);
 		index++;
 	}
-	splited_cmd[index] = (char *)NULL;
+	splited_cmd[index] = (char *) NULL;
 	return (splited_cmd);
 }
 

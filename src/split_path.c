@@ -6,12 +6,12 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/02 12:26:46 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/05 17:05:38 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/05 22:53:40 by madlab           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 /*
-	Point of get path is making a "correctly" splitted PATH array from environment
+	Point of get path is making a "correctly" split PATH array from environment
 	Basically a reworked ft_split addind '/' at every path's end.
 	EXEMPLE :
 		ENV :
@@ -112,14 +112,14 @@ static char	*find_path_in_env(char **env)
 	while (env[index] && ft_strncmp(env[index], "PATH=", 5) != 0)
 		index++;
 	if (!env[index])
-		return (print_error("pipex: ", "No PATH"), (char *)NULL);
+		return (print_error("pipex: ", "No PATH"), (char *) NULL);
 	return (env[index] + 5);
 }
 
 /*
 	split the PATH variable from env
 */
-char **get_path(char **env)
+char	**get_path(char **env)
 {
 	char			**splited_path;
 	char			*env_path;
@@ -127,21 +127,21 @@ char **get_path(char **env)
 	unsigned int	index;
 
 	if (!env)
-		return (print_error("get_path: ", "No ENV"), (char **)NULL);
+		return (print_error("get_path: ", "No ENV"), (char **) NULL);
 	env_path = find_path_in_env(env);
 	if (!env_path)
-		return ((char **)NULL);
+		return ((char **) NULL);
 	path_nbr = count_path(env_path);
 	splited_path = (char **)malloc(sizeof(char *) * (path_nbr + 1));
 	if (!splited_path)
-		return (print_error("get_path: ", strerror(errno)), (char **)NULL);
+		return (print_error("get_path: ", strerror(errno)), (char **) NULL);
 	index = 0;
 	while (index < path_nbr)
 	{
 		splited_path[index] = extract_path(&env_path);
 		if (!splited_path[index])
 			return (free_all(&splited_path, index), print_error("make_path: ",
-				strerror(errno)), (char **)NULL);
+					strerror(errno)), (char **) NULL);
 		index++;
 	}
 	splited_path[index] = NULL;

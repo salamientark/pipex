@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 11:27:16 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/04 09:03:27 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/05 21:01:31 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ int    first_command(char *infile, char *cmd, int pipe_fd[2], char **env)
         exit_error_cmd("pipex: ", infile, strerror(errno));
     close(pipe_fd[0]);
     if (dup2(fd, STDIN_FILENO) < 0 || dup2(pipe_fd[1], STDOUT_FILENO) < 0)
-        return (close(fd), EXIT_FAILURE);
+        return (close(fd), close(pipe_fd[1]), EXIT_FAILURE);
     close(fd);    
     close(pipe_fd[1]);
     splited_cmd = parse_command(cmd, env);  
@@ -135,7 +135,7 @@ void    pipex(int ac, char **av, char **env)
         {
             if (index == 2)
                 exit(first_command(av[1], av[2], pipe_fd[0], env));
-            else if (index < ac - 2)
+            else if (index > 2 && index < ac - 2)
                 exit(middle_command(av[index], pipe_fd[(index + 1) % 2], pipe_fd[index % 2], env));
             else
                 exit(last_command(av[index + 1], av[index], pipe_fd[(index + 1) % 2], env));

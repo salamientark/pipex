@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 10:13:07 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/05 17:02:28 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/05 22:52:25 by madlab           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,8 +115,8 @@ int	pipe_here_doc(int ac, char **av, char **env)
 		return (print_error("pipex_here_doc: ", strerror(errno)), -1);
 	if (pid == 0)
 		second_command(av[5], pipefd, av[4], env);
-    close(pipefd[0]);
-    close(pipefd[1]);
+	close(pipefd[0]);
+	close(pipefd[1]);
 	wait(NULL);
 	unlink("./here_doc");
 	return (0);
