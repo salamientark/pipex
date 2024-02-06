@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 11:27:16 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/06 13:33:39 by madlab           ###   ########.fr       */
+/*   Updated: 2024/02/06 21:17:27 by madlab           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,9 +60,8 @@ int	init_pipex(int ac, char **av, int *index_ptr)
 		return (-1);
 	if (dup2(fd, STDIN_FILENO) < 0)
 		return (print_error("pipex: ", strerror(errno)), close(fd), -1);
-	// return (fd);
-	// close(fd);
-	return (fd);
+	close(fd);
+	return (0);
 }
 
 /*
@@ -83,8 +82,8 @@ void	pipex(char *cmd, char **env)
 		close(pipe_fd[0]);
 		if (dup2(pipe_fd[1], STDOUT_FILENO) < 0)
 			exit_error_msg("pipex: ", strerror(errno));
-		ft_exec(cmd, env);
 		close(pipe_fd[1]);
+		ft_exec(cmd, env);
 		exit(EXIT_FAILURE);
 	}
 	close(pipe_fd[1]);
