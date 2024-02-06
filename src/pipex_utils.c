@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 13:24:06 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/06 21:28:24 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/06 21:36:51 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ int	ft_open(char *filename, int open_mode)
 	else if (open_mode == 2)
 		fd = open(filename, O_CREAT | O_APPEND | O_WRONLY, 0664);
 	else
-		fd = open(filename, O_CREAT | O_TRUNC | O_RDWR, 0644);
+		fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, 0664);
 	if (fd < 0)
 		print_error_cmd("pipex: ", filename, strerror(errno));
 	return (fd);
