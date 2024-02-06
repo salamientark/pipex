@@ -7,11 +7,10 @@ PROJECT = pipex
 PROJECT_DIR = ./
 
 SRC_DIR = src
-SRC_FILE = command.c \
-			here_doc.c \
+SRC_FILE = parse_command.c \
 			error.c \
 			split_path.c \
-			pipex.c
+			pipex_utils.c pipex.c
 			   
 ### HEADER FILE ###
 HEADER_DIR = includes

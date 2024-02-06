@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 14:14:45 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/05 22:50:56 by madlab           ###   ########.fr       */
+/*   Updated: 2024/02/06 13:26:04 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,35 +148,3 @@ char	**parse_command(char *cmd, char **env)
 	splited_cmd[index] = (char *) NULL;
 	return (splited_cmd);
 }
-
-// /*
-// 	Add correct binary from env to cmd
-// */
-// char	**parse_command(char *cmd, char **env)
-// {
-// 	char	**parse_cmd;
-// 	int		path_pos;
-
-// 	parse_cmd = ft_split(cmd, ' ');
-// 	if (!parse_cmd)
-// 	{
-// 		print_error("parse_command: ", "ft_split error");
-// 		return (NULL);
-// 	}
-// 	path_pos = 0;
-// 	while (env[path_pos] && ft_strncmp(env[path_pos], "PATH=", 5) != 0)
-// 		path_pos++;
-// 	if (!env[path_pos])
-// 	{
-// 		free_str_tab(&parse_cmd);
-// 		print_error_cmd("parse_command: ", cmd, "Command not found");
-// 		return (NULL);
-// 	}
-// 	add_executable_dir(&parse_cmd, env[path_pos]);
-// 	if (!parse_cmd)
-// 	{
-// 		// free_cmd(&parse_cmd);
-// 		return (NULL);
-// 	}
-// 	return (parse_cmd);
-// }

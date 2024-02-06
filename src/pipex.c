@@ -6,166 +6,151 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 11:27:16 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/05 21:01:31 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/06 13:33:39 by madlab           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/pipex.h"
 
-extern char **environ;
+extern char	**environ;
 
-void    free_str_tab(char ***str_tab_ptr)
+/*
+	Create Defautl environment if not found
+*/
+char	**get_env(void)
 {
-    int index;
+	char	**env;
 
-    index = 0;
-    while ((*str_tab_ptr)[index] != NULL)
-    {
-        free((*str_tab_ptr)[index]);
-        (*str_tab_ptr)[index] = NULL;
-        index++;
-    }
-    free(*str_tab_ptr);
-    *str_tab_ptr = NULL;
+	if (environ != NULL)
+		return (environ);
+	env = (char **)malloc(sizeof(char *) * 2);
+	if (!env)
+		return (print_error("get_env: ", strerror(errno)), (char **) NULL);
+	env[0] = ft_strdup("PATH=/usr/bin:/bin");
+	if (!env[0])
+	{
+		free(env);
+		print_error("get_env: ", strerror(errno));
+		return ((char **) NULL);
+	}
+	env[1] = NULL;
+	return (env);
 }
 
 /*
-    Create Defautl environment if not found
+	Open infile or here_doc + redirect it to STD_IN + set index
 */
-char **create_env(void)
+int	init_pipex(int ac, char **av, int *index_ptr)
 {
-    char    **env;
+	int	fd;
 
-    env = (char **)malloc(sizeof(char *) * 2);
-    if (!env)
-        exit_error_msg("create_env: ", "Unable to create_env");
-    env[0] = "PATH=/usr/bin:/bin";
-    env[1] = NULL;
-    return (env);
-}
-
-int    first_command(char *infile, char *cmd, int pipe_fd[2], char **env)
-{
-    char    **splited_cmd;
-    int     fd;
-
-    fd = open(infile, O_RDONLY);
-    if (fd < 0)
-        exit_error_cmd("pipex: ", infile, strerror(errno));
-    close(pipe_fd[0]);
-    if (dup2(fd, STDIN_FILENO) < 0 || dup2(pipe_fd[1], STDOUT_FILENO) < 0)
-        return (close(fd), close(pipe_fd[1]), EXIT_FAILURE);
-    close(fd);    
-    close(pipe_fd[1]);
-    splited_cmd = parse_command(cmd, env);  
-    if (!splited_cmd)
-        return (EXIT_FAILURE);
-    execve(splited_cmd[0], splited_cmd, env);
-    free_str_tab(&splited_cmd);
-    print_error("pipex: ", strerror(errno));
-    return (EXIT_FAILURE);  
-}
-
-int    last_command(char *outfile, char *cmd, int pipe_fd[2], char **env)
-{
-    ft_printf("outfile: %s | cmd %s\n", outfile, cmd);
-    char    **splited_cmd;
-    int     fd;
-
-    fd = open(outfile, O_CREAT | O_TRUNC | O_WRONLY, 0664);
-    if (fd < 0)
-        exit_error_cmd("pipex: ", outfile, strerror(errno));
-    close(pipe_fd[1]);
-    if (dup2(pipe_fd[0], STDIN_FILENO) < 0 || dup2(fd, STDOUT_FILENO) < 0)
-        return (close(fd), EXIT_FAILURE);
-    close(fd);    
-    close(pipe_fd[0]);
-    splited_cmd = parse_command(cmd, env);  
-    if (!splited_cmd)
-        return (EXIT_FAILURE);
-    execve(splited_cmd[0], splited_cmd, env);
-    free_str_tab(&splited_cmd);
-    print_error("pipex: ", strerror(errno));
-    return (EXIT_FAILURE);  
+	if (av[1] && ft_strcmp(av[1], "here_doc") == 0 && ac < 6)
+		exit_error_msg(HERE_DOC_MISUSE, "");
+	if (ac < 5)
+		exit_error_msg(PIPEX_MISUSE, "");
+	*index_ptr = 2;
+	if (ft_strcmp(av[1], "here_doc") == 0)
+	{
+		fd = here_doc(av[2]);
+		*index_ptr += 1;
+	}
+	else
+		fd = ft_open(av[1], 1);
+	if (fd < 0)
+		return (-1);
+	if (dup2(fd, STDIN_FILENO) < 0)
+		return (print_error("pipex: ", strerror(errno)), close(fd), -1);
+	// return (fd);
+	// close(fd);
+	return (fd);
 }
 
 /*
-    MAYBE ADD A SECOND PIPE TO LINK MIDDLE PROG WITH PREVIOUS + MIDDLE PROG WITH NEXT
+	pipe + fork + exec
 */
-
-int    middle_command(char *cmd, int pipe_from[2], int pipe_to[2], char **env)
+void	pipex(char *cmd, char **env)
 {
-    char    **splited_cmd;
+	int		pipe_fd[2];
+	pid_t	pid;
 
-    close(pipe_from[1]);
-    close(pipe_to[0]);
-    if (dup2(pipe_from[0], STDIN_FILENO) < 0 || dup2(pipe_to[1], STDOUT_FILENO) < 0)
-    {
-        close(pipe_from[0]);
-        close(pipe_to[1]);
-        exit_error_msg("Middle_command: ", strerror(errno));
-    }
-    close(pipe_from[0]);
-    close(pipe_to[1]);
-    splited_cmd = parse_command(cmd, env);  
-    if (!splited_cmd)
-        return (EXIT_FAILURE);
-    execve(splited_cmd[0], splited_cmd, env);
-    free_str_tab(&splited_cmd);
-    print_error("pipex: ", strerror(errno));
-    return (EXIT_FAILURE);  
+	if (pipe(pipe_fd) < 0)
+		return (print_error("pipex: ", strerror(errno)));
+	pid = fork();
+	if (pid < 0)
+		return (print_error("pipex: ", strerror(errno)));
+	if (pid == 0)
+	{
+		close(pipe_fd[0]);
+		if (dup2(pipe_fd[1], STDOUT_FILENO) < 0)
+			exit_error_msg("pipex: ", strerror(errno));
+		ft_exec(cmd, env);
+		close(pipe_fd[1]);
+		exit(EXIT_FAILURE);
+	}
+	close(pipe_fd[1]);
+	if (dup2(pipe_fd[0], STDIN_FILENO))
+		exit_error_msg("pipex: ", strerror(errno));
+	close(pipe_fd[0]);
 }
 
+// // /*
+// //	 Redirect command output to file opened in open_mode
+// // */
+// void	ft_redirect_from(char *filename, int open_mode, char *cmd, char **env)
+// {
+//	 pid_t   pid;
+//	 int	 pipe_fd[2];
+//	 int	 fd;
 
-void    pipex(int ac, char **av, char **env)
+//	 fd = ft_open(filename, open_mode);
+//	 if (fd < 0)
+//		 exit(EXIT_FAILURE);
+//	 if (dup2(fd, STDIN_FILENO) < 0)
+//		 exit_error_msg("pipex: ", strerror(errno));
+//	 if (pipe(pipe_fd) < 0)
+//		 return (print_error("ft_redirect_to: ", strerror(errno)));
+//	 pid = fork();
+//	 if (pid < 0)
+//		 return (print_error("pipex: ", strerror(errno)));
+//	 if (pid == 0)
+//	 {
+//		 close(pipe_fd[0]);
+//		 if (dup2(pipe_fd[1], STDOUT_FILENO) < 0)
+//			 exit_error_msg("pipex: ", strerror(errno));
+//		 ft_exec(cmd, env);
+//		 close(pipe_fd[1]);
+//		 exit(EXIT_FAILURE);
+//	 }
+//	 close(pipe_fd[1]);
+//	 if (dup2(pipe_fd[0], STDIN_FILENO) < 0)
+//		 print_error("pipex: ", strerror(errno));
+//	 close(pipe_fd[0]);
+// }
+
+int	main(int ac, char **av)
 {
-    int     index;
-    int     pipe_fd[2][2];
-    pid_t   pid;
+	char	**env;
+	int		index;
 
-    if (pipe(pipe_fd[0]) < 0 || pipe(pipe_fd[1]) < 0)
-        exit_error_msg("pipex: ", strerror(errno));
-    index = 2;
-    while (index < ac - 1)
-    {
-        pid = fork();
-        if (pid < 0)
-            exit_error_msg("pipex: ", strerror(errno));
-        if (pid == 0)
-        {
-            if (index == 2)
-                exit(first_command(av[1], av[2], pipe_fd[0], env));
-            else if (index > 2 && index < ac - 2)
-                exit(middle_command(av[index], pipe_fd[(index + 1) % 2], pipe_fd[index % 2], env));
-            else
-                exit(last_command(av[index + 1], av[index], pipe_fd[(index + 1) % 2], env));
-        }
-        index++;
-    }
-    close(pipe_fd[0][0]);
-    close(pipe_fd[0][1]);
-    close(pipe_fd[1][0]);
-    close(pipe_fd[1][1]);
-    wait(NULL);
-}
-
-int main(int ac, char **av)
-{
-    char    **env;
-
-    if (ac <= 4 || (!ft_strcmp(av[1], "here_doc") && ac != 6))
-        return (0);
-    if (!environ)
-        env = create_env();
-    else
-        env = environ;
-    if (ft_strcmp(av[1], "here_doc") == 0)
-        ft_printf("here_doc return : %d\n", pipe_here_doc(ac, av, env));
-    else
-    {
-        pipex(ac, av, env);
-    }
-    if (!environ)
-        free_str_tab(&env);
-    return (0);
+	env = get_env();
+	if (!env)
+		return (EXIT_FAILURE);
+	if (init_pipex(ac, av, &index) < 0)
+		return (0);
+	while (index < ac - 2)
+	{
+		pipex(av[index], env);
+		index++;
+	}
+	if (ft_strcmp(av[1], "here_doc") == 0)
+		ft_redirect_to(av[index + 1], 2, av[index], env);
+	else
+		ft_redirect_to(av[index + 1], 3, av[index], env);
+	wait(NULL);
+	if (!environ)
+	{
+		free(env[1]);
+		free(env);
+	}
+	return (0);
 }
