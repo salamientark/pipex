@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 13:24:06 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/16 18:51:54 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/16 20:30:09 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,3 +136,31 @@ void	ft_redirect_to(char *filename, int open_mode, char *cmd, char **env)
 		exit_error_msg("pipex: ", strerror(errno));
 	close(pipe_fd[0]);
 }
+
+/*
+	ERROR FUNC
+	Whith this function /dev/stdin don't work
+*/
+// void	ft_redirect_to(char *filename, int open_mode, char *cmd, char **env)
+// {
+// 	pid_t	pid;
+// 	int		fd;
+
+// 	pid = fork();
+// 	if (pid < 0)
+// 		return (print_error("pipex: ", strerror(errno)));
+// 	if (pid == 0)
+// 	{
+// 		fd = ft_open(filename, open_mode);
+// 		if (fd < 0)
+// 			exit(EXIT_FAILURE);
+// 		if (dup2(fd, STDOUT_FILENO) < 0)
+// 		{
+// 			close(fd);
+// 			exit_error_msg("pipex: ", strerror(errno));
+// 		}
+// 		close(fd);
+// 		ft_exec(cmd, env);
+// 		exit_error_cmd("redirect_to: ", cmd, strerror(errno));
+// 	}
+// }

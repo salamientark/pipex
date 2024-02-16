@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 11:27:16 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/16 18:52:28 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/16 21:38:17 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 extern char	**environ;
 
 /*
-	Create Defautl environment if not found
+	Create Default environment if not found
 */
 char	**get_env(void)
 {
@@ -25,13 +25,14 @@ char	**get_env(void)
 		return (environ);
 	env = (char **)malloc(sizeof(char *) * 2);
 	if (!env)
-		return (print_error("get_env: ", strerror(errno)), (char **) NULL);
+		exit_error_msg("get_env: ", strerror(errno));
 	env[0] = ft_strdup("PATH=/usr/bin:/bin");
 	if (!env[0])
 	{
 		free(env);
-		print_error("get_env: ", strerror(errno));
-		return ((char **) NULL);
+		exit_error_msg("get_env: ", strerror(errno));
+		// print_error("get_env: ", strerror(errno));
+		// return ((char **) NULL);
 	}
 	env[1] = NULL;
 	return (env);
@@ -127,33 +128,33 @@ void	ft_redirect_from(char *filename, int open_mode, char *cmd, char **env)
 	close(pipe_fd[0]);
 }
 
-int	main(int ac, char **av)
-{
-	char	**env;
-	int		index;
+// int	main(int ac, char **av)
+// {
+// 	char	**env;
+// 	int		index;
 
-	env = get_env();
-	if (!env)
-		return (EXIT_FAILURE);
-	// if (init_pipex(ac, av, &index) < 0)
-	// 	return (0);
-	ft_redirect_from(av[1], 1, av[2], env);
-	index = 3;
-	while (index < ac - 2)
-	{
-		pipex(av[index], env);
-		index++;
-	}
-	if (ft_strcmp(av[1], "here_doc") == 0)
-		ft_redirect_to(av[index + 1], 2, av[index], env);
-	else
-		ft_redirect_to(av[index + 1], 3, av[index], env);
-	while (wait(NULL) > -1)
-		;
-	if (!environ)
-	{
-		free(env[1]);
-		free(env);
-	}
-	return (0);
-}
+// 	env = get_env();
+// 	if (!env)
+// 		return (EXIT_FAILURE);
+// 	// if (init_pipex(ac, av, &index) < 0)
+// 	// 	return (0);
+// 	ft_redirect_from(av[1], 1, av[2], env);
+// 	index = 3;
+// 	while (index < ac - 2)
+// 	{
+// 		pipex(av[index], env);
+// 		index++;
+// 	}
+// 	if (ft_strcmp(av[1], "here_doc") == 0)
+// 		ft_redirect_to(av[index + 1], 2, av[index], env);
+// 	else
+// 		ft_redirect_to(av[index + 1], 3, av[index], env);
+// 	while (wait(NULL) > -1)
+// 		;
+// 	if (!environ)
+// 	{
+// 		free(env[1]);
+// 		free(env);
+// 	}
+// 	return (0);
+// }

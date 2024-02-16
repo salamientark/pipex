@@ -10,7 +10,8 @@ SRC_DIR = src
 SRC_FILE = parse_command.c \
 			error.c \
 			split_path.c \
-			pipex_utils.c pipex.c
+			pipex_utils.c pipex.c \
+			new_pipex.c
 			   
 ### HEADER FILE ###
 HEADER_DIR = includes
