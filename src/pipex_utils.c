@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/06 13:24:06 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/16 20:30:09 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/17 10:45:46 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,7 @@ int	here_doc(char *limiter)
 	int		limiter_len;
 	char	*line;
 
-	fd = ft_open(HERE_DOC, 0);
+	fd = ft_open("/tmp/.here_doc", 0);
 	if (fd == -1)
 		return (-1);
 	limiter_len = ft_strlen(limiter);
@@ -80,7 +80,7 @@ int	here_doc(char *limiter)
 	close(fd);
 	if (!line)
 		print_error("Ctrl + D", "");
-	fd = ft_open(HERE_DOC, 1);
+	fd = ft_open("/tmp/.here_doc", 1);
 	return (free(line), fd);
 }
 

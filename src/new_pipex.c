@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 20:28:36 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/17 10:25:54 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/17 11:01:48 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,11 +89,14 @@ void	redirect_io(int pipe_fd[2], t_pipex data, int redirect_flag)
 {
 	int	fd;
 
+	close(pipe_fd[0]);
 	if (redirect_flag <= 3)
 	{
-		close(pipe_fd[0]);
 		if (redirect_flag == 1)
+		{
+			close(pipe_fd[1]);
 			pipe_here_doc(data.limiter);
+		}
 		if(dup2(pipe_fd[1], STDOUT_FILENO) < 0)
 			exit_error_msg("pipex: ", strerror(errno));
 		close(pipe_fd[1]);
@@ -114,7 +117,6 @@ void	redirect_io(int pipe_fd[2], t_pipex data, int redirect_flag)
 	else
 	{
 		close(pipe_fd[1]);
-		close(pipe_fd[0]);
 		if (redirect_flag == 4)
 			fd = open(data.outfile, O_CREAT | O_TRUNC | O_WRONLY, 0644);
 		else

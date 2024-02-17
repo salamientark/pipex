@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   command.c                                          :+:      :+:    :+:   */
+/*   parse_command.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 14:14:45 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/06 13:26:04 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/17 10:56:52 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,8 +132,10 @@ char	**parse_command(char *cmd, char **env)
 	unsigned int	index;
 
 	if (!cmd)
-		return (NULL);
+		exit_error_msg("parse_cmd :", "No command");
 	word_nb = count_word(cmd);
+	if (word_nb == 0)
+		exit_error_msg(cmd, CMD_NOT_FOUND);
 	splited_cmd = (char **)malloc(sizeof(char *) * (word_nb + 1));
 	if (!splited_cmd)
 		return (NULL);

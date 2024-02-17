@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 10:07:15 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/16 21:52:04 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/17 10:48:04 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,7 @@
 
 # define HERE_DOC_MISUSE "pipex here_doc [limiter] [cmd 1]...[cmd n] [outfile]"
 # define PIPEX_MISUSE "pipex [infile] [cmd 1] .... [cmd n] [outifle]"
-# define HERE_DOC "/tmp/.here_doc"
-
+# define CMD_NOT_FOUND " : Command not found"
 typedef struct s_pipex
 {
     int     here_doc;
