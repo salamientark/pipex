@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 20:28:36 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/16 22:15:56 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/17 10:25:54 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ void	pipe_here_doc(char *limiter)
 		line = get_next_line(STDIN_FILENO);
 		while (line && ft_strncmp(limiter, line, limiter_len) != 0)
 		{
-			write(STDOUT_FILENO, line, ft_strlen(line));
+			write(pipe_fd[1], line, ft_strlen(line));
 			free(line);
 			write(STDOUT_FILENO, "here_doc > ", 11);
 			line = get_next_line(STDIN_FILENO);
@@ -47,11 +47,11 @@ void	pipe_here_doc(char *limiter)
 		close(pipe_fd[1]);
 		exit(EXIT_SUCCESS);
 	}
+	waitpid(pid, NULL, 0);
 	close(pipe_fd[1]);
 	if (dup2(pipe_fd[0], STDIN_FILENO) < 0)
 		exit_error_msg("pipe_here_doc: ", strerror(errno));
 	close(pipe_fd[0]);
-	waitpid(pid, NULL, 0);
 }
 
 t_pipex	new_init_pipex(int ac, char **av)
@@ -77,46 +77,6 @@ t_pipex	new_init_pipex(int ac, char **av)
 	return (data);
 }
 
-void	first_cmd(char *cmd, t_pipex data)
-{
-	int		pipe_fd[2];
-	pid_t	pid;
-	int		fd;
-
-	if (pipe(pipe_fd) < 0)
-		exit_error_msg("pipex: ", strerror(errno));
-	pid = fork();
-	if (pid < 0)
-		exit_error_msg("pipex: ", strerror(errno));
-	if (pid == 0)
-	{
-		close(pipe_fd[0]);
-		if (data.here_doc)
-			pipe_here_doc(data.limiter);
-		else
-		{
-			fd = open(data.infile, O_RDONLY);
-			if (fd < 0)
-				exit_error_cmd("pipex: ", data.infile, strerror(errno));
-			if (dup2(fd, STDIN_FILENO) < 0)
-			{
-				close(fd);
-				exit_error_msg("pipex: ", strerror(errno));
-			}
-            close(fd);
-        }
-        if (dup2(pipe_fd[1], STDOUT_FILENO) < 0)
-            exit_error_msg("pipex: ", strerror(errno));
-        ft_exec(cmd, data.env);
-        exit_error_msg("pipex: ", strerror(errno));
-	}
-    close(pipe_fd[1]);
-    if (dup2(pipe_fd[0], STDIN_FILENO) < 0)
-        exit_error_msg("pipex: ", strerror(errno));
-    close(pipe_fd[0]);
-}
-
-
 /*
 	FLAGS :
 	0 : redirect from. Same as '<'
@@ -132,11 +92,11 @@ void	redirect_io(int pipe_fd[2], t_pipex data, int redirect_flag)
 	if (redirect_flag <= 3)
 	{
 		close(pipe_fd[0]);
+		if (redirect_flag == 1)
+			pipe_here_doc(data.limiter);
 		if(dup2(pipe_fd[1], STDOUT_FILENO) < 0)
 			exit_error_msg("pipex: ", strerror(errno));
 		close(pipe_fd[1]);
-		if (redirect_flag == 1)
-			pipe_here_doc(data.limiter);
 		if (redirect_flag == 0)
 		{
 			fd = open(data.infile, O_RDONLY);
