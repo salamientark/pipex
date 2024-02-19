@@ -11,7 +11,6 @@ SRC_FILE = parse_command.c \
 			error.c \
 			split_path.c \
 			pipex_utils.c pipex.c \
-			new_pipex.c
 			   
 ### HEADER FILE ###
 HEADER_DIR = includes
@@ -48,11 +47,9 @@ fclean : clean
 clean :
 	rm -f $(OBJ_DIR)/*.o
 	@rm -df $(OBJ_DIR)/
-#	rm -f $(BONUS_DIR)/$(OBJ_DIR)/*.o
-#	@rm -df $(BONUS_DIR)/$(OBJ_DIR)/
 	make clean -C $(FT_DIR)
 
 re : fclean all
 
 norminette :
-	norminette $(FT_DIR) $(SRC_DIR) $(HEADER_DIR)
+	norminette $(FT_DIR) $(SRC_DIR)/ $(HEADER_DIR)/

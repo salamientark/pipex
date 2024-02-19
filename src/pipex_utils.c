@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/02/06 13:24:06 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/17 10:45:46 by dbaladro         ###   ########.fr       */
+/*   Created: 2024/02/19 08:04:31 by dbaladro          #+#    #+#             */
+/*   Updated: 2024/02/19 08:10:17 by madlab           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,136 +31,113 @@ void	free_str_tab(char ***str_tab_ptr)
 }
 
 /*
-	Open file + print error if failed
-	OPEN_MODE :
-	0 - Create_here_doc
-	1 - Read file
-	2 - Append to file
-	3 - Write to file
+	Write here_doc into pipe
 */
-int	ft_open(char *filename, int open_mode)
+static void	write_here_doc(int pipe_fd[2], char *limiter)
 {
-	int	fd;
-
-	if (open_mode == 0)
-		fd = open(filename, O_CREAT | O_TRUNC | O_RDWR, 0644);
-	else if (open_mode == 1)
-		fd = open(filename, O_RDONLY);
-	else if (open_mode == 2)
-		fd = open(filename, O_CREAT | O_APPEND | O_WRONLY, 0664);
-	else
-		fd = open(filename, O_CREAT | O_TRUNC | O_WRONLY, 0664);
-	if (fd < 0)
-		print_error_cmd("pipex: ", filename, strerror(errno));
-	return (fd);
-}
-
-/*
-	Create here_doc and return fd descritor of it
-*/
-int	here_doc(char *limiter)
-{
-	int		fd;
 	int		limiter_len;
 	char	*line;
 
-	fd = ft_open("/tmp/.here_doc", 0);
-	if (fd == -1)
-		return (-1);
 	limiter_len = ft_strlen(limiter);
-	write(1, "> ", 2);
-	line = get_next_line(0);
-	while (line && ft_strncmp(line, limiter, limiter_len) != 0)
+	close(pipe_fd[0]);
+	write(STDOUT_FILENO, "here_doc > ", 11);
+	line = get_next_line(STDIN_FILENO);
+	while (line && ft_strncmp(limiter, line, limiter_len) != 0)
 	{
-		write(fd, line, ft_strlen(line));
+		write(pipe_fd[1], line, ft_strlen(line));
 		free(line);
-		write(1, "> ", 2);
-		line = get_next_line(0);
+		write(STDOUT_FILENO, "here_doc > ", 11);
+		line = get_next_line(STDIN_FILENO);
 	}
-	close(fd);
 	if (!line)
-		print_error("Ctrl + D", "");
-	fd = ft_open("/tmp/.here_doc", 1);
-	return (free(line), fd);
+		print_error("pipe_here_doc: ", "Ctrl+d Nan Nan Nan.");
+	else
+		free(line);
+	close(pipe_fd[1]);
+	exit(EXIT_SUCCESS);
 }
 
 /*
-	execve + error printing
+	Create child process for here_doc piping
 */
-void	ft_exec(char *cmd, char **env)
-{
-	char	**final_cmd;
-
-	final_cmd = parse_command(cmd, env);
-	if (final_cmd)
-	{
-		execve(final_cmd[0], final_cmd, env);
-		print_error("pipex: ", strerror(errno));
-		return ;
-	}
-	return ;
-}
-
-/*
-	Redirect command output to file opened in open_mode
-*/
-void	ft_redirect_to(char *filename, int open_mode, char *cmd, char **env)
+void	pipe_here_doc(char *limiter)
 {
 	pid_t	pid;
-	int		fd;
 	int		pipe_fd[2];
 
 	if (pipe(pipe_fd) < 0)
-		exit_error_msg("pipex: ", strerror(errno));
+		exit_error_msg("pipe_here_doc: ", strerror(errno));
 	pid = fork();
 	if (pid < 0)
-		return (print_error("pipex: ", strerror(errno)));
+		exit_error_msg("pipe_here_doc: ", strerror(errno));
 	if (pid == 0)
-	{
-		fd = ft_open(filename, open_mode);
-		if (fd < 0)
-			exit(EXIT_FAILURE);
-		if (dup2(fd, STDOUT_FILENO) < 0)
-		{
-			close(fd);
-			exit_error_msg("pipex: ", strerror(errno));
-		}
-		close(fd);
-		close(pipe_fd[0]);
-		close(pipe_fd[1]);
-		ft_exec(cmd, env);
-		exit_error_cmd("redirect_to: ", cmd, strerror(errno));
-	}
+		write_here_doc(pipe_fd, limiter);
+	waitpid(pid, NULL, 0);
 	close(pipe_fd[1]);
 	if (dup2(pipe_fd[0], STDIN_FILENO) < 0)
-		exit_error_msg("pipex: ", strerror(errno));
+		exit_error_msg("pipe_here_doc: ", strerror(errno));
 	close(pipe_fd[0]);
 }
 
 /*
-	ERROR FUNC
-	Whith this function /dev/stdin don't work
+	Redirect from file or to file.
 */
-// void	ft_redirect_to(char *filename, int open_mode, char *cmd, char **env)
-// {
-// 	pid_t	pid;
-// 	int		fd;
+static void	file_redirect(t_pipex data, int redirect_flag)
+{
+	int	fd;
 
-// 	pid = fork();
-// 	if (pid < 0)
-// 		return (print_error("pipex: ", strerror(errno)));
-// 	if (pid == 0)
-// 	{
-// 		fd = ft_open(filename, open_mode);
-// 		if (fd < 0)
-// 			exit(EXIT_FAILURE);
-// 		if (dup2(fd, STDOUT_FILENO) < 0)
-// 		{
-// 			close(fd);
-// 			exit_error_msg("pipex: ", strerror(errno));
-// 		}
-// 		close(fd);
-// 		ft_exec(cmd, env);
-// 		exit_error_cmd("redirect_to: ", cmd, strerror(errno));
-// 	}
-// }
+	if (redirect_flag == READ_FROM_FILE)
+		fd = open(data.infile, O_RDONLY);
+	if (redirect_flag == WRITE_TO_FILE_TRUNC)
+		fd = open(data.outfile, O_CREAT | O_TRUNC | O_WRONLY, 0644);
+	if (redirect_flag == WRITE_TO_FILE_APPEND)
+		fd = open(data.outfile, O_CREAT | O_APPEND | O_WRONLY, 0644);
+	if (fd < 0)
+		exit_error_cmd("pipex: ", data.infile, strerror(errno));
+	if (redirect_flag == 0)
+	{
+		if (dup2(fd, STDIN_FILENO) < 0)
+		{
+			close(fd);
+			exit_error_msg("pipex: ", strerror(errno));
+		}
+	}
+	if (redirect_flag > 2 && dup2(fd, STDOUT_FILENO) < 0)
+	{
+		close(fd);
+		exit_error_msg("pipex: ", strerror(errno));
+	}
+	close(fd);
+}
+
+/*
+	FLAGS :
+	0 : redirect from. Same as '<'
+	1 : here_doc
+	3 : normal pipe (Also work for here_doc ?)
+	4 : Redirect to (TRUNCATE). Same as '>'
+	5 : Redirect to (APPEND). Same as '>>' 
+*/
+void	redirect_io(int pipe_fd[2], t_pipex data, int redirect_flag)
+{
+	close(pipe_fd[0]);
+	if (redirect_flag == HERE_DOC)
+	{
+		close(pipe_fd[1]);
+		pipe_here_doc(data.limiter);
+	}
+	else if (redirect_flag == READ_FROM_FILE || redirect_flag == PIPE)
+	{
+		if (dup2(pipe_fd[1], STDOUT_FILENO) < 0)
+			exit_error_msg("pipex: ", strerror(errno));
+		close(pipe_fd[1]);
+		if (redirect_flag == PIPE)
+			return ;
+		file_redirect(data, redirect_flag);
+	}
+	else
+	{
+		close(pipe_fd[1]);
+		file_redirect(data, redirect_flag);
+	}
+}

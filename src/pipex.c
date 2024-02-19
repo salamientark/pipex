@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/01/31 11:27:16 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/16 21:38:17 by dbaladro         ###   ########.fr       */
+/*   Created: 2024/02/16 20:28:36 by dbaladro          #+#    #+#             */
+/*   Updated: 2024/02/19 08:10:37 by madlab           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,130 +31,100 @@ char	**get_env(void)
 	{
 		free(env);
 		exit_error_msg("get_env: ", strerror(errno));
-		// print_error("get_env: ", strerror(errno));
-		// return ((char **) NULL);
 	}
 	env[1] = NULL;
 	return (env);
 }
 
 /*
-	Open infile or here_doc + redirect it to STD_IN + set index
+	Init t_pipex struct
 */
-int	init_pipex(int ac, char **av, int *index_ptr)
+t_pipex	init_pipex(int ac, char **av)
 {
-	int	fd;
+	t_pipex	data;
 
 	if (av[1] && ft_strcmp(av[1], "here_doc") == 0 && ac < 6)
 		exit_error_msg(HERE_DOC_MISUSE, "");
 	if (ac < 5)
 		exit_error_msg(PIPEX_MISUSE, "");
-	*index_ptr = 2;
+	data.env = get_env();
+	data.infile = av[1];
+	data.outfile = av[ac - 1];
+	data.limiter = NULL;
+	data.here_doc = 0;
 	if (ft_strcmp(av[1], "here_doc") == 0)
 	{
-		fd = here_doc(av[2]);
-		*index_ptr += 1;
+		data.here_doc = 1;
+		data.limiter = av[2];
 	}
 	else
-		fd = ft_open(av[1], 1);
-	if (fd < 0)
-		return (-1);
-	if (dup2(fd, STDIN_FILENO) < 0)
-		return (print_error("pipex: ", strerror(errno)), close(fd), -1);
-	close(fd);
-	return (0);
+		data.infile = av[1];
+	return (data);
 }
 
-/*
-	pipe + fork + exec
-*/
-void	pipex(char *cmd, char **env)
+pid_t	pipex(char *cmd, t_pipex data, int redirect_flag)
 {
-	int		pipe_fd[2];
 	pid_t	pid;
+	int		pipe_fd[2];
+	char	**final_cmd;
 
 	if (pipe(pipe_fd) < 0)
-		return (print_error("pipex: ", strerror(errno)));
+		exit_error_msg("pipex: ", strerror(errno));
 	pid = fork();
 	if (pid < 0)
-		return (print_error("pipex: ", strerror(errno)));
+		exit_error_msg("pipex: ", strerror(errno));
 	if (pid == 0)
 	{
-		close(pipe_fd[0]);
-		if (dup2(pipe_fd[1], STDOUT_FILENO) < 0)
-			exit_error_msg("pipex: ", strerror(errno));
-		close(pipe_fd[1]);
-		ft_exec(cmd, env);
+		redirect_io(pipe_fd, data, redirect_flag);
+		final_cmd = parse_command(cmd, data.env);
+		if (!final_cmd)
+			exit(EXIT_FAILURE);
+		execve(final_cmd[0], final_cmd, data.env);
+		print_error("pipex: ", strerror(errno));
+		free_str_tab(&final_cmd);
 		exit(EXIT_FAILURE);
 	}
 	close(pipe_fd[1]);
-	if (dup2(pipe_fd[0], STDIN_FILENO))
+	if (dup2(pipe_fd[0], STDIN_FILENO) < 0)
 		exit_error_msg("pipex: ", strerror(errno));
 	close(pipe_fd[0]);
+	return (pid);
 }
 
-// // /*
-// //	 Redirect command output to file opened in open_mode
-// // */
-void	ft_redirect_from(char *filename, int open_mode, char *cmd, char **env)
+int	wait_for_children(pid_t last_pid)
 {
-	pid_t   pid;
-	int	 fd;
-	int		pipe_fd[2];
-	
-	if (pipe(pipe_fd) < 0)
-		exit_error_msg("redirect_from: ", strerror(errno));
-	pid = fork();
-	if (pid < 0)
-	 return (print_error("pipex: ", strerror(errno)));
-	if (pid == 0)
+	int		status;
+	int		return_value;
+
+	while (ECHILD != errno)
 	{
-		close(pipe_fd[0]);
-		fd = ft_open(filename, open_mode);
-		if (fd < 0)
-			exit_error_cmd("redirect_from", filename, strerror(errno));
-		if (dup2(fd, STDIN_FILENO) < 0)
-			exit_error_msg("pipex: ", strerror(errno));
-		close(fd);
-		if (dup2(pipe_fd[1], STDOUT_FILENO) < 0)
-			exit_error_msg("pipex: ", strerror(errno));
-		close(pipe_fd[1]);
-		ft_exec(cmd, env);
-		exit_error_cmd("redirect_from: ", cmd, strerror(errno));
+		if (waitpid(0, &status, 0) == last_pid)
+		{
+			if (WIFEXITED(status))
+				return_value = WEXITSTATUS(status);
+			else
+				return_value = WSTOPSIG(status);
+		}
 	}
-	close(pipe_fd[1]);
-	if (dup2(pipe_fd[0], STDIN_FILENO) < 0)
-			exit_error_msg("pipex: ", strerror(errno));
-	close(pipe_fd[0]);
+	return (return_value);
 }
 
-// int	main(int ac, char **av)
-// {
-// 	char	**env;
-// 	int		index;
+int	main(int ac, char **av)
+{
+	t_pipex	data;
+	int		index;
+	int		last_pid;
 
-// 	env = get_env();
-// 	if (!env)
-// 		return (EXIT_FAILURE);
-// 	// if (init_pipex(ac, av, &index) < 0)
-// 	// 	return (0);
-// 	ft_redirect_from(av[1], 1, av[2], env);
-// 	index = 3;
-// 	while (index < ac - 2)
-// 	{
-// 		pipex(av[index], env);
-// 		index++;
-// 	}
-// 	if (ft_strcmp(av[1], "here_doc") == 0)
-// 		ft_redirect_to(av[index + 1], 2, av[index], env);
-// 	else
-// 		ft_redirect_to(av[index + 1], 3, av[index], env);
-// 	while (wait(NULL) > -1)
-// 		;
-// 	if (!environ)
-// 	{
-// 		free(env[1]);
-// 		free(env);
-// 	}
-// 	return (0);
-// }
+	data = init_pipex(ac, av);
+	index = 2 + data.here_doc;
+	last_pid = pipex(av[index++], data, data.here_doc);
+	while (index < ac - 2)
+	{
+		last_pid = pipex(av[index], data, 3);
+		index++;
+	}
+	last_pid = pipex(av[index], data, 4 + data.here_doc);
+	if (!environ)
+		free_str_tab(&(data.env));
+	return (wait_for_children(last_pid));
+}
