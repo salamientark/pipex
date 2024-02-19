@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 14:14:45 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/17 10:56:52 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/02/19 10:16:50 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ static char	*add_executable_dir(char **cmd_ptr, char **env)
 	char	*final_cmd;
 	int		index;
 
-	if (access(*cmd_ptr, F_OK | X_OK) != -1)
+	if (access(*cmd_ptr, F_OK) != -1)
 		return (*cmd_ptr);
 	path = get_path(env);
 	if (!path)
@@ -81,7 +81,7 @@ static char	*add_executable_dir(char **cmd_ptr, char **env)
 		if (!final_cmd)
 			return (print_error("add_executable_dir: ", strerror(errno)),
 				free_str_tab(&path), free(*cmd_ptr), (char *) NULL);
-		if (access(final_cmd, F_OK | X_OK) != -1)
+		if (access(final_cmd, F_OK) != -1)
 			return (free_str_tab(&path), free(*cmd_ptr), final_cmd);
 		free(final_cmd);
 		index++;
@@ -131,11 +131,9 @@ char	**parse_command(char *cmd, char **env)
 	unsigned int	word_nb;
 	unsigned int	index;
 
-	if (!cmd)
-		exit_error_msg("parse_cmd :", "No command");
 	word_nb = count_word(cmd);
 	if (word_nb == 0)
-		exit_error_msg(cmd, CMD_NOT_FOUND);
+		return (print_error("pipex: ", CMD_NOT_FOUND), exit(127), NULL);
 	splited_cmd = (char **)malloc(sizeof(char *) * (word_nb + 1));
 	if (!splited_cmd)
 		return (NULL);
@@ -144,7 +142,12 @@ char	**parse_command(char *cmd, char **env)
 	{
 		splited_cmd[index] = extract_word(&cmd, index, env);
 		if (!splited_cmd[index])
-			return (free_all(&splited_cmd, index), (char **) NULL);
+		{
+			free_all(&splited_cmd, index);
+			if (index == 0)
+				exit(127);
+			return ((char **) NULL);
+		}
 		index++;
 	}
 	splited_cmd[index] = (char *) NULL;

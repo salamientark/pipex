@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 08:04:31 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/19 08:10:17 by madlab           ###   ########.fr       */
+/*   Updated: 2024/02/19 10:14:43 by madlab           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,21 +86,21 @@ static void	file_redirect(t_pipex data, int redirect_flag)
 {
 	int	fd;
 
+	fd = 0;
 	if (redirect_flag == READ_FROM_FILE)
 		fd = open(data.infile, O_RDONLY);
+	if (fd < 0)
+		exit_error_cmd("pipex: ", data.infile, strerror(errno));
 	if (redirect_flag == WRITE_TO_FILE_TRUNC)
 		fd = open(data.outfile, O_CREAT | O_TRUNC | O_WRONLY, 0644);
 	if (redirect_flag == WRITE_TO_FILE_APPEND)
 		fd = open(data.outfile, O_CREAT | O_APPEND | O_WRONLY, 0644);
 	if (fd < 0)
-		exit_error_cmd("pipex: ", data.infile, strerror(errno));
-	if (redirect_flag == 0)
+		exit_error_cmd("pipex: ", data.outfile, strerror(errno));
+	if (redirect_flag == 0 && dup2(fd, STDIN_FILENO) < 0)
 	{
-		if (dup2(fd, STDIN_FILENO) < 0)
-		{
-			close(fd);
-			exit_error_msg("pipex: ", strerror(errno));
-		}
+		close(fd);
+		exit_error_msg("pipex: ", strerror(errno));
 	}
 	if (redirect_flag > 2 && dup2(fd, STDOUT_FILENO) < 0)
 	{

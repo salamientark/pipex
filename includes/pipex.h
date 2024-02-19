@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 10:07:15 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/19 08:09:01 by madlab           ###   ########.fr       */
+/*   Updated: 2024/02/19 08:46:56 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,18 +48,21 @@ typedef struct s_pipex
 // COMMAND
 char	**parse_command(char *cmd, char **env);
 
-// PATH
-char	**get_path(char **env);
-
 // ERROR
 void	print_error(char *msg, char *error);
 void	print_error_cmd(char *msg, char *arg, char *error);
 void	exit_error_msg(char *msg, char *msg_2);
 void	exit_error_cmd(char *msg, char *arg, char *error);
 
+// PATH
+char	**get_path(char **env);
+
 // PIPEX_UTILS
 void	free_str_tab(char ***str_tab_ptr);
 void	pipe_here_doc(char *limiter);
 void	redirect_io(int pipe_fd[2], t_pipex data, int redirect_flag);
+
+// PIPEX
+char	**get_env(void);
 
 #endif

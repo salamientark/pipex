@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 20:28:36 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/19 08:10:37 by madlab           ###   ########.fr       */
+/*   Updated: 2024/02/19 10:13:11 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,9 +80,9 @@ pid_t	pipex(char *cmd, t_pipex data, int redirect_flag)
 		if (!final_cmd)
 			exit(EXIT_FAILURE);
 		execve(final_cmd[0], final_cmd, data.env);
-		print_error("pipex: ", strerror(errno));
+		print_error_cmd("pipex: ", final_cmd[0], strerror(errno));
 		free_str_tab(&final_cmd);
-		exit(EXIT_FAILURE);
+		exit(126);
 	}
 	close(pipe_fd[1]);
 	if (dup2(pipe_fd[0], STDIN_FILENO) < 0)

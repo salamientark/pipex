@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/02 12:26:46 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/05 22:53:40 by madlab           ###   ########.fr       */
+/*   Updated: 2024/02/19 08:59:38 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,7 +112,10 @@ static char	*find_path_in_env(char **env)
 	while (env[index] && ft_strncmp(env[index], "PATH=", 5) != 0)
 		index++;
 	if (!env[index])
-		return (print_error("pipex: ", "No PATH"), (char *) NULL);
+	{
+		print_error("pipex: ", "No PATH");
+		exit(127);
+	}
 	return (env[index] + 5);
 }
 
