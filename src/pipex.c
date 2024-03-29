@@ -6,23 +6,21 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 20:28:36 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/03/29 11:45:01 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/03/29 12:07:31 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../includes/pipex.h"
 
-extern char	**environ;
-
 /*
 	Create Default environment if not found
 */
-char	**get_env(void)
+char	**get_env(char **envp)
 {
 	char	**env;
 
-	if (environ != NULL)
-		return (environ);
+	if (envp != NULL)
+		return (envp);
 	env = (char **)malloc(sizeof(char *) * 2);
 	if (!env)
 		exit_error_msg("get_env: ", strerror(errno));
@@ -47,7 +45,8 @@ t_pipex	init_pipex(int ac, char **av, char **envp)
 		exit_error_msg(HERE_DOC_MISUSE, "");
 	if (ac < 5)
 		exit_error_msg(PIPEX_MISUSE, "");
-	data.env = envp;
+	// data.env = envp;
+	data.env = get_env(envp);
 	data.infile = av[1];
 	data.outfile = av[ac - 1];
 	data.limiter = NULL;
@@ -124,7 +123,7 @@ int	main(int ac, char **av, char **envp)
 		index++;
 	}
 	last_pid = pipex(av[index], data, 4 + data.here_doc);
-	if (!environ)
+	if (!envp)
 		free_str_tab(&(data.env));
 	return (wait_for_children(last_pid));
 }
