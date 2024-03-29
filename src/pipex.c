@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 20:28:36 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/19 10:13:11 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/03/29 11:45:01 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ char	**get_env(void)
 /*
 	Init t_pipex struct
 */
-t_pipex	init_pipex(int ac, char **av)
+t_pipex	init_pipex(int ac, char **av, char **envp)
 {
 	t_pipex	data;
 
@@ -47,7 +47,7 @@ t_pipex	init_pipex(int ac, char **av)
 		exit_error_msg(HERE_DOC_MISUSE, "");
 	if (ac < 5)
 		exit_error_msg(PIPEX_MISUSE, "");
-	data.env = get_env();
+	data.env = envp;
 	data.infile = av[1];
 	data.outfile = av[ac - 1];
 	data.limiter = NULL;
@@ -109,13 +109,13 @@ int	wait_for_children(pid_t last_pid)
 	return (return_value);
 }
 
-int	main(int ac, char **av)
+int	main(int ac, char **av, char **envp)
 {
 	t_pipex	data;
 	int		index;
 	int		last_pid;
 
-	data = init_pipex(ac, av);
+	data = init_pipex(ac, av, envp);
 	index = 2 + data.here_doc;
 	last_pid = pipex(av[index++], data, data.here_doc);
 	while (index < ac - 2)
