@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 20:28:36 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/03/29 12:07:31 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/03/29 12:11:53 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,6 @@ t_pipex	init_pipex(int ac, char **av, char **envp)
 		exit_error_msg(HERE_DOC_MISUSE, "");
 	if (ac < 5)
 		exit_error_msg(PIPEX_MISUSE, "");
-	// data.env = envp;
 	data.env = get_env(envp);
 	data.infile = av[1];
 	data.outfile = av[ac - 1];
