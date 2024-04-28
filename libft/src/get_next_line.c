@@ -61,7 +61,7 @@ static ssize_t	read_line(const int fd, t_block **head)
 	line_len = read_block(fd, head);
 	if (line_len <= 0)
 		return (line_len);
-	while (((*head)->last_pos == BUFFER_SIZE))
+	while ((*head)->last_pos == BUFFER_SIZE)
 	{
 		tmp_block = init_block();
 		read_result = read_block(fd, &tmp_block);

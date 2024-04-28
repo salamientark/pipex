@@ -114,7 +114,7 @@ static char	*find_path_in_env(char **env)
 	if (!env[index])
 	{
 		print_error("pipex: ", "No PATH");
-		exit(127);
+		return ((char *) NULL);
 	}
 	return (env[index] + 5);
 }
