@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/19 08:04:31 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/02/19 10:14:43 by madlab           ###   ########.fr       */
+/*   Updated: 2024/04/29 01:31:23 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,8 @@ static void	write_here_doc(int pipe_fd[2], char *limiter)
 	close(pipe_fd[0]);
 	write(STDOUT_FILENO, "here_doc > ", 11);
 	line = get_next_line(STDIN_FILENO);
-	while (line && ft_strncmp(limiter, line, limiter_len) != 0)
+	while (line && !(ft_strncmp(limiter, line, limiter_len) == 0
+			&& line[limiter_len] == '\n'))
 	{
 		write(pipe_fd[1], line, ft_strlen(line));
 		free(line);
@@ -121,12 +122,7 @@ static void	file_redirect(t_pipex data, int redirect_flag)
 void	redirect_io(int pipe_fd[2], t_pipex data, int redirect_flag)
 {
 	close(pipe_fd[0]);
-	if (redirect_flag == HERE_DOC)
-	{
-		close(pipe_fd[1]);
-		pipe_here_doc(data.limiter);
-	}
-	else if (redirect_flag == READ_FROM_FILE || redirect_flag == PIPE)
+	if (redirect_flag == READ_FROM_FILE || redirect_flag == PIPE)
 	{
 		if (dup2(pipe_fd[1], STDOUT_FILENO) < 0)
 			exit_error_msg("pipex: ", strerror(errno));

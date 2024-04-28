@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/31 10:07:15 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/03/29 12:07:47 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/04/29 01:24:39 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,5 +64,8 @@ void	redirect_io(int pipe_fd[2], t_pipex data, int redirect_flag);
 
 // PIPEX
 char	**get_env(char **envp);
+t_pipex	init_pipex(int ac, char **av, char **envp);
+pid_t	pipex(char *cmd, t_pipex data, int redirect_flag);
+int		wait_for_children(pid_t last_pid);
 
 #endif

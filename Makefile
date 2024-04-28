@@ -10,7 +10,9 @@ SRC_DIR = src
 SRC_FILE = parse_command.c \
 			error.c \
 			split_path.c \
-			pipex_utils.c pipex.c \
+			pipex_utils.c pipex.c
+MANDATORY = main.c
+BONUS = main_bonus.c
 			   
 ### HEADER FILE ###
 HEADER_DIR = includes
@@ -23,17 +25,21 @@ FT_FLAG = -L$(FT_DIR) -l$(FT)
 ## OBJECT FILE ###
 OBJ_DIR = .obj
 OBJ_SRC = $(addprefix $(OBJ_DIR)/, $(SRC_FILE:.c=.o))
+OBJ_MANDATORY = $(addprefix $(OBJ_DIR)/, $(MANDATORY:.c=.o))
+OBJ_BONUS = $(addprefix $(OBJ_DIR)/, $(BONUS:.c=.o))
 
 .PHONY=bonus
 
 ### RULES ###
 all : $(PROJECT)
 
-bonus : all
-
-$(PROJECT) : $(OBJ_SRC)
+bonus : $(OBJ_SRC) $(OBJ_BONUS)
 	make -C $(FT_DIR)
-	$(CC) -g3 $(CFLAGS) $(OBJ_SRC) -o $(PROJECT) $(FT_FLAG)
+	$(CC) -g3 $(CFLAGS) $(OBJ_SRC) $(OBJ_BONUS) -o $(PROJECT) $(FT_FLAG)
+
+$(PROJECT) : $(OBJ_SRC) $(OBJ_MANDATORY)
+	make -C $(FT_DIR)
+	$(CC) -g3 $(CFLAGS) $(OBJ_SRC) $(OBJ_MANDATORY) -o $(PROJECT) $(FT_FLAG)
 
 $(OBJ_DIR)/%.o : $(SRC_DIR)/%.c
 	@mkdir -p $(@D)

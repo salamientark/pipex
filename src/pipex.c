@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 20:28:36 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/03/29 12:11:53 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/04/29 01:35:45 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,24 +105,4 @@ int	wait_for_children(pid_t last_pid)
 		}
 	}
 	return (return_value);
-}
-
-int	main(int ac, char **av, char **envp)
-{
-	t_pipex	data;
-	int		index;
-	int		last_pid;
-
-	data = init_pipex(ac, av, envp);
-	index = 2 + data.here_doc;
-	last_pid = pipex(av[index++], data, data.here_doc);
-	while (index < ac - 2)
-	{
-		last_pid = pipex(av[index], data, 3);
-		index++;
-	}
-	last_pid = pipex(av[index], data, 4 + data.here_doc);
-	if (!envp)
-		free_str_tab(&(data.env));
-	return (wait_for_children(last_pid));
 }
