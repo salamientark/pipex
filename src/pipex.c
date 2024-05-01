@@ -6,7 +6,7 @@
 /*   By: dbaladro <dbaladro@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/02/16 20:28:36 by dbaladro          #+#    #+#             */
-/*   Updated: 2024/04/29 01:35:45 by dbaladro         ###   ########.fr       */
+/*   Updated: 2024/04/29 13:49:07 by dbaladro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,32 +32,6 @@ char	**get_env(char **envp)
 	}
 	env[1] = NULL;
 	return (env);
-}
-
-/*
-	Init t_pipex struct
-*/
-t_pipex	init_pipex(int ac, char **av, char **envp)
-{
-	t_pipex	data;
-
-	if (av[1] && ft_strcmp(av[1], "here_doc") == 0 && ac < 6)
-		exit_error_msg(HERE_DOC_MISUSE, "");
-	if (ac < 5)
-		exit_error_msg(PIPEX_MISUSE, "");
-	data.env = get_env(envp);
-	data.infile = av[1];
-	data.outfile = av[ac - 1];
-	data.limiter = NULL;
-	data.here_doc = 0;
-	if (ft_strcmp(av[1], "here_doc") == 0)
-	{
-		data.here_doc = 1;
-		data.limiter = av[2];
-	}
-	else
-		data.infile = av[1];
-	return (data);
 }
 
 pid_t	pipex(char *cmd, t_pipex data, int redirect_flag)
